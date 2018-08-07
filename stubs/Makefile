@@ -33,7 +33,7 @@
 all: clean balapi_stubs
 
 balapi_stubs:
-	gcc -c balapi_stubs.c -I ../include/ -o balapi_stubs.o
+	gcc -DBAL_API_STUB $(BAL_EXTRA_CFLAGS) -c balapi_stubs.c -I ../include/ -o balapi_stubs.o
 
 clean:
 	rm -rf *.o

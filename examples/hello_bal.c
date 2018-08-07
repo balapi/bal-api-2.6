@@ -31,6 +31,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <bal_api.h>
+#ifndef BAL_API_STUB
+#include <bal_api_end.h>
+#endif
 
 static void sample_acc_term_indication_cb(bcmbal_obj *obj);
 
@@ -78,9 +81,35 @@ int main(int argc, char *argv[])
     /*
      * Initialize the access_terminal structure with the key
      */
-    BCMBAL_CFG_INIT(&access_terminal_obj, access_terminal, access_terminal_key);
-    BCMBAL_CFG_PROP_SET(&access_terminal_obj, access_terminal, admin_state, BCMBAL_STATE_UP);
-    ret = bcmbal_cfg_set(access_term, BCMBAL_OBJ(&access_terminal_obj));
+    int retry_count = 0;
+    for(retry_count=0; retry_count<10; retry_count++)
+    {
+        BCMBAL_CFG_INIT(&access_terminal_obj, access_terminal, access_terminal_key);
+        BCMBAL_CFG_PROP_GET(&access_terminal_obj, access_terminal, admin_state);
+        ret = bcmbal_cfg_get(access_term, &(access_terminal_obj.hdr));
+
+         /* Activate if it hasn't been done yet */
+        if (BCM_ERR_OK != ret || BCMBAL_STATE_UP != access_terminal_obj.data.admin_state)
+        {
+            BCMBAL_CFG_INIT(&access_terminal_obj, access_terminal, access_terminal_key);
+            BCMBAL_CFG_PROP_SET(&access_terminal_obj, access_terminal, admin_state, BCMBAL_STATE_UP);
+
+            if(retry_count)
+            {
+                printf("Retrying access terminal up...\n");
+            }
+
+            ret = bcmbal_cfg_set(access_term, &(access_terminal_obj.hdr));
+
+            if(BCM_ERR_OK != ret)
+            {
+                printf("Failed to configure the access-terminal object to ADMIN-UP\n");
+                break;
+            }
+            sleep(30);
+        }
+    }
+
 
     printf("bcmbal_cfg_set function %s\n", (BCM_ERR_OK == ret) ? "successfully executed" : "FAILED!");
 
@@ -98,7 +127,7 @@ int main(int argc, char *argv[])
 
     /* Retrieve the NNI stats (rx_packets only) from the object instance */
 
-    interface_key.intf_id = 1;  /* retrieve stats from interface NNI 1 */
+    interface_key.intf_id = 0;  /* retrieve stats from interface NNI 0 */
     interface_key.intf_type = BCMBAL_INTF_TYPE_NNI;
 
     BCMBAL_STAT_INIT(&interface_stat_obj, interface, interface_key);
@@ -109,18 +138,18 @@ int main(int argc, char *argv[])
 
     printf("bcmbal_stat_get function %s\n", (BCM_ERR_OK == ret) ? "successfully executed" : "FAILED!");
 
-    /* Send the packet out to NNI interface 2 */
+    /* Send the packet out to NNI interface 0 */
     destination.type =  BCMBAL_DEST_TYPE_NNI;
-    destination.u.nni.intf_id = 2;
+    destination.u.nni.intf_id = 0;
 
     ret = bcmbal_pkt_send(access_term, destination, &user_pkt, user_pkt_size);
 
     printf("bcmbal_pkt_send to NNI function %s\n", (BCM_ERR_OK == ret) ? "successfully executed" : "FAILED!");
 
-    /* Send the packet out to ONU 2 on PON 1 (assumes that a downstream flow exists on ONU2/PON1) */
+    /* Send the packet out to ONU 2 on PON 0 (assumes that a downstream flow exists on ONU2/PON1) */
     destination.type =  BCMBAL_DEST_TYPE_SUB_TERM;
     destination.u.sub_term.sub_term_id = 2;
-    destination.u.sub_term.intf_id = 1;
+    destination.u.sub_term.intf_id = 0;
 
     ret = bcmbal_pkt_send(access_term, destination, &user_pkt, user_pkt_size);
 

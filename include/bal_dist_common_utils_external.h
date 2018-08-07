@@ -28,60 +28,40 @@
  *  :>
  *
  *****************************************************************************/
-#include <stdio.h>
-#include <string.h>
-#include <bal_api.h>
+ 
+/**
+ * @file bal_dist_common_utils_external.h
+ * @brief BAL Utilities include file for Distributed Mode that can be exposed to external users
+ *
+ * @defgroup dist_util Bal Dist Util Routines
+ * @ingroup lib
+ */
+
+#ifndef _BAL_DIST_COMMON_UTILS_EXTERNAL_H
+#define _BAL_DIST_COMMON_UTILS_EXTERNAL_H
+
+/*@{*/
+
+#include <bcmos_system.h>
+
+
+/**
+ * @brief BAL modes
+ */
+typedef enum 
+{
+    BAL_MODE_UNDEFINED = 0,
+    BAL_MODE_MONO,
+    BAL_MODE_DIST_CORE,
+    BAL_MODE_DIST_API
+} bcmbal_bal_mode;
+
+#define BAL_MODE_IS_VALID(_bal_mode)    ((BAL_MODE_MONO <= (_bal_mode)) && (BAL_MODE_DIST_API >= (_bal_mode)))
+
 
 typedef void (* bcmbal_exit_cb)(void);
 
-bcmos_errno bcmbal_init(int argc, char *argv[], bcmbal_exit_cb exit_cb)
-{
-    /*
-     * Keep the caller happy
-     */
-    return BCM_ERR_OK;
-}
 
-bcmos_errno bcmbal_finish(void)
-{
-    return BCM_ERR_OK;
-}
+/*@}*/
 
-
-bcmos_errno bcmbal_cfg_set(bcmbal_access_term_id access_term_id, bcmbal_cfg *objinfo)
-{
-    return BCM_ERR_OK;
-}
-
-bcmos_errno bcmbal_cfg_get(bcmbal_access_term_id access_term_id, bcmbal_cfg *objinfo)
-{
-    return BCM_ERR_OK;
-}
-
-bcmos_errno bcmbal_pkt_send(bcmbal_access_term_id access_term_id,
-                            bcmbal_dest dest,
-                            const char *packet_to_send,
-                            uint16_t packet_len)
-{
-    return BCM_ERR_OK;    
-}
-
-bcmos_errno bcmbal_cfg_clear(bcmbal_access_term_id access_term_id, bcmbal_cfg * objinfo)
-{
-    return BCM_ERR_OK;    
-}
-
-bcmos_errno bcmbal_stat_get(bcmbal_access_term_id access_term_id, bcmbal_stat *objinfo, bcmos_bool clear_on_read)
-{
-    return BCM_ERR_OK;    
-}
-
-bcmos_errno bcmbal_subscribe_ind(bcmbal_access_term_id access_term_id, bcmbal_cb_cfg *cb_cfg)
-{
-    return BCM_ERR_OK;    
-}
-
-bcmos_errno bcmbal_unsubscribe_ind(bcmbal_access_term_id access_term_id, bcmbal_cb_cfg *cb_cfg)
-{
-    return BCM_ERR_OK;    
-}
+#endif /* _BAL_DIST_COMMON_UTILS_EXTERNAL_H*/

@@ -29,8 +29,56 @@ You should see printouts that all of the function calls successfully executed:
   bcmbal_finish function successfully executed
 
 
-NOTE: The BAL API function provided herein are only stubs, and do not actually 
-perform any actual function.  The purpose of executing the calls is provide an 
+NOTE: The BAL API function built for hello_bal are only stubs, and do not actually
+perform any actual function.  The purpose of executing the calls is provide an
 example of how to call the BAL API functions, and to validate that the files in
 this repo are coherent.
+
+
+
+ADDITIONAL OPTIONS FOR BUILDING A FUNCTIONAL hello_bal APP
+=========================================================
+If you want to build a functional BAL application using the hello_bal example, 
+then you need to have the libbal_api_shared.so library.  The shared library
+can be built by building the BAL source code obtained from Broadcom through an SLA,
+or else the library itself obtained by some other means. 
+
+Do the following steps:
+
+(1) Copy libbal_api_dist.so shared library for the BAL API module to the bal_api root directory
+
+(2) Go to the examples directory:
+
+  cd examples
+
+Then run make:
+
+  make
+
+To Run the hello_bal functional application:
+--------------------------------------------
+
+(1) Start BAL Core side executable as per procedure explained for BAL Distributed mode in BAL Programmers' Guide.
+
+(2) Then execute the resulting application:
+
+  LD_LIBRARY_PATH=.. ./hello_bal_app -C <BAL Core IP>:<BAL Core UDP Port>
+
+
+You should see printouts that all of the function calls successfully executed:
+
+  bcmbal_init function successfully executed
+  bcmbal_subscribe_ind function successfully executed
+  bcmbal_cfg_set function successfully executed
+  bcmbal_cfg_get function successfully executed
+  bcmbal_stat_get function successfully executed
+  bcmbal_pkt_send to NNI function successfully executed
+  bcmbal_pkt_send to ONU function successfully executed
+  bcmbal_unsubscribe_ind function successfully executed
+  bcmbal_finish function successfully executed
+
+
+NOTE: When built with BAL API shared library, the BAL API functions should 
+    perform actual functions in BAL Distributed mode, and be able to interact with 
+    MAC & Switch Hardware through the BAL Core running in distributed mode.
 

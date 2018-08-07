@@ -37,6 +37,10 @@
 #ifndef BCMOS_SYSTEM_H
 #define BCMOS_SYSTEM_H
 
+#include <pthread.h>
+#include <semaphore.h>
+#include "bal_osmsg.h"
+
 /** BCM68620 module (FAKE)
  * \ingroup system_module
  */
@@ -48,12 +52,12 @@ typedef enum
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned int uint32_t;
-typedef unsigned long uint64_t;
+typedef long long unsigned int uint64_t;
 
-typedef char int8_t;
+typedef signed char int8_t;
 typedef short int16_t;
 typedef int int32_t;
-typedef long int64_t;
+typedef long long int64_t;
 
 typedef _Bool bcmos_bool;
 
@@ -71,6 +75,7 @@ typedef union
     uint32_t u32;
     uint8_t u8[4];
 } bcmos_ipv4_address;
+
 
 /** IPv6 address */
 typedef uint8_t bcmos_ipv6_address[16];
@@ -103,17 +108,47 @@ typedef union
 typedef uint16_t bcmos_vlan_tag;
 
 /** FAKE Message header for compilation */
-typedef struct bcmos_msg
-{
-    int foo;
-}bcmos_msg;
+typedef struct bcmos_msg bcmos_msg;
 
-/** FAKE semaphore for complilation */
+typedef uint16_t bcmos_msg_instance;
+typedef void (*F_bcmos_msg_handler)(bcmos_module_id module_id, bcmos_msg *msg);
+
+typedef uint32_t bcmos_msg_queue_ep_type;
+typedef uint32_t bcmos_msg_send_flags;
+
+typedef struct bcmos_msg_addr
+{
+    bcmos_msg_queue_ep_type type;       /**< Address type */
+    uint32_t len;                       /**< Address length */
+    void *addr;                         /**< Address pointer */
+} bcmos_msg_addr;
+
+/** Message header */
+struct bcmos_msg
+{
+    bcmos_msg_id   type;        /**< Message type */
+    bcmos_msg_instance instance;/**< Message recipient instance (e.g., optical link id) */
+    bcmos_module_id sender;     /**< Sender module */
+    F_bcmos_msg_handler handler;/**< Message handler. Can be set by the sender or message dispatcher */
+    struct bcmos_msg *next; /**< Next message pointer */
+    void *data;                 /**< Message data pointer */
+    void *start;                /**< Message data block start (for release) */
+    void *user_data;            /**< User pointer. Opaque for OS abstraction */
+    uint32_t size;              /**< Message data size */
+    bcmos_msg_send_flags send_flags;    /**< Flags the message was sent with */
+#define BCMOS_MSG_QUEUE_SIZE_UNLIMITED    0xFFFFFFFF      /**< Unlimited queue */
+#ifdef BCMOS_MSG_QUEUE_REMOTE_SUPPORT
+    bcmos_msg_addr addr;        /**< Sender address for received message, destination address when sending */
+#endif
+    void (*release)(bcmos_msg *);       /**< Release callback */
+    void (*data_release)(bcmos_msg *);  /**< Data release callback. Used when message is released to message pool */
+};
+
+
+/** FAKE semaphore for compilation */
 typedef struct bcmos_sem
 {
-    int sem;
-}bcmos_sem;
-
-typedef void (* bcmbal_exit_cb)(void);
+    sem_t s;      /**< posix semaphore */
+} bcmos_sem;
 
 #endif /* BCMOS_SYSTEM_H */

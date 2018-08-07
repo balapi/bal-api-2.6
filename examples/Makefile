@@ -29,14 +29,33 @@
 #
 #############################################################################/
 
-all: clean balapi_stubs hello_bal
+all: clean balapi_stubs hello_bal hello_bal_app
+
+export BAL_EXTRA_CFLAGS=-m32 -march=i386 -lpthread -lrt -DBCMOS_MSG_QUEUE_REMOTE_SUPPORT
+
+BAL_SO_LIB_DIR=-L../
+
+BAL_SO_LIB=-lbal_api_dist
+
 
 
 balapi_stubs:
 	make -C ../stubs
 
+#Build hello_bal with BAL stub functions for BAL API calls
 hello_bal:
-	gcc hello_bal.c ../stubs/balapi_stubs.o -I ../include -o hello_bal
+	gcc -DBAL_API_STUB $(BAL_EXTRA_CFLAGS) hello_bal.c ../stubs/balapi_stubs.o -I ../include -o hello_bal
+
+
+#Build hello_bal with actual BAL API functions for BAL API calls
+#Note: This needs BAL shared lib from building BAL image obtained through Broadcom SLA, or obtained by other means.
+hello_bal_app:
+	test -s ../libbal_api_dist.so && \
+	gcc $(BAL_EXTRA_CFLAGS) hello_bal.c -I ../include  $(BAL_SO_LIB_DIR) $(BAL_SO_LIB) -o hello_bal_app \
+	|| \
+	echo "libbal_api_dist.so not found! Not building hello_bal..." && exit
+
 
 clean:
 	rm -rf hello_bal
+	rm -rf hello_bal_app
